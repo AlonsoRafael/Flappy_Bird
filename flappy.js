@@ -125,6 +125,18 @@ function Passaro(alturaJogo) {
         window.onkeyup = e => {
             if (jogoAtivo) voando = false;
         };
+        window.onmousedown = e => {
+            if (jogoAtivo) {
+                e.preventDefault();
+                voando = true;
+            }
+        };
+        window.onmouseup = e => {
+            if (jogoAtivo) {
+                e.preventDefault();
+                voando = false;
+            }
+        };
     };
 
     this.desativar = () => {
@@ -132,6 +144,8 @@ function Passaro(alturaJogo) {
         voando = false;
         window.onkeydown = null;
         window.onkeyup = null;
+        window.onmousedown = null;
+        window.onmouseup = null;
     };
 
     this.animar = () => {
