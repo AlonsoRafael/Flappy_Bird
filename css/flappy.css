@@ -61,3 +61,70 @@
   font-size: 70px;
   z-index: 100;
 }
+
+.tela-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.titulo-overlay {
+  font-family: Pixel;
+  font-size: 60px;
+  color: white;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.botao-play {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: blue;
+  border: 5px solid #fff;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.botao-play:hover {
+  background: blue;
+  transform: scale(1.1);
+}
+
+.botao-play::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 30px solid white;
+  border-top: 20px solid transparent;
+  border-bottom: 20px solid transparent;
+  margin-left: 8px;
+}
+
+.reiniciar .botao-play {
+  background: blue;
+}
+
+.reiniciar .botao-play:hover {
+  background: blue;
+}
+
+.pontuacao-final {
+  font-family: Pixel;
+  font-size: 40px;
+  color: white;
+  margin-bottom: 20px;
+  text-align: center;
+}

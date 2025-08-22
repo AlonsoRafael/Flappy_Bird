@@ -1,3 +1,34 @@
+function TelaOverlay(tipo, pontuacao = 0) {
+    this.elemento = novoElemento("div", "tela-overlay");
+    
+    if (tipo === "iniciar") {
+        this.elemento.innerHTML = `
+            <div class="titulo-overlay">INICIAR</div>
+            <div class="botao-play"></div>
+        `;
+    } else if (tipo === "reiniciar") {
+        this.elemento.classList.add("reiniciar");
+        this.elemento.innerHTML = `
+            <div class="titulo-overlay">GAME OVER</div>
+            <div class="pontuacao-final">Pontuação: ${pontuacao}</div>
+            <div class="botao-play"></div>
+        `;
+    }
+
+    this.mostrar = () => {
+        this.elemento.style.display = "flex";
+    };
+
+    this.esconder = () => {
+        this.elemento.style.display = "none";
+    };
+
+    this.onClick = callback => {
+        const botao = this.elemento.querySelector(".botao-play");
+        botao.onclick = callback;
+    };
+}
+
 function novoElemento(tagName, className) {
   const elemento = document.createElement(tagName);
   elemento.className = className;
@@ -67,10 +98,18 @@ function Barreiras(altura, largura, abertura, espaco, notificarPonto) {
         });
     };
 
+    this.resetar = () => {
+        this.pares.forEach((par, i) => {
+            par.setX(largura + espaco * i);
+            par.sortearAbertura();
+        });
+    };
+
 }
 
 function Passaro(alturaJogo) {
     let voando = false;
+    let jogoAtivo = false;
 
     this.elemento = novoElemento("img", "passaro");
     this.elemento.src = "imagens/passaro.png";
@@ -78,10 +117,26 @@ function Passaro(alturaJogo) {
     this.getY = () => parseInt(this.elemento.style.bottom.split('px')[0]);
     this.setY = y => this.elemento.style.bottom = `${y}px`;
 
-    window.onkeydown = e => voando = true;
-    window.onkeyup = e => voando = false;
+    this.ativar = () => {
+        jogoAtivo = true;
+        window.onkeydown = e => {
+            if (jogoAtivo) voando = true;
+        };
+        window.onkeyup = e => {
+            if (jogoAtivo) voando = false;
+        };
+    };
+
+    this.desativar = () => {
+        jogoAtivo = false;
+        voando = false;
+        window.onkeydown = null;
+        window.onkeyup = null;
+    };
 
     this.animar = () => {
+        if (!jogoAtivo) return;
+        
         const novoY = this.getY() + (voando ? 8 : -5);
         const alturaMaxima = alturaJogo - this.elemento.clientHeight;
 
@@ -92,6 +147,11 @@ function Passaro(alturaJogo) {
         } else {
             this.setY(novoY);
         }
+    };
+
+    this.resetar = () => {
+        this.setY(alturaJogo / 2);
+        voando = false;
     };
 
     this.setY(alturaJogo / 2);
@@ -133,6 +193,8 @@ function colidiu(passaro, barreiras) {
 
 function FlappyBird() {
     let pontos = 0;
+    let temporizador = null;
+    let telaReiniciarAtual = null;
 
     const areaDeJogo = document.querySelector("[wm-flappy]");
     const altura = areaDeJogo.clientHeight;
@@ -142,24 +204,56 @@ function FlappyBird() {
     const barreiras = new Barreiras(altura, largura, 200, 400, () => {
         progresso.atualizarPontos(++pontos);
     });
-
     const passaro = new Passaro(altura);
+
+    const telaIniciar = new TelaOverlay("iniciar");
 
     areaDeJogo.appendChild(progresso.elemento);
     areaDeJogo.appendChild(passaro.elemento);
     barreiras.pares.forEach(par => areaDeJogo.appendChild(par.elemento));
+    areaDeJogo.appendChild(telaIniciar.elemento);
 
-    this.start = () => {
-        const temporizador = setInterval(() => {
+    const iniciarJogo = () => {
+        telaIniciar.esconder();
+        if (telaReiniciarAtual) {
+            telaReiniciarAtual.esconder();
+        }
+        passaro.ativar();
+        
+        temporizador = setInterval(() => {
             barreiras.animar();
             passaro.animar();
 
             if (colidiu(passaro, barreiras)) {
                 clearInterval(temporizador);
+                passaro.desativar();
+                
+                if (telaReiniciarAtual) {
+                    areaDeJogo.removeChild(telaReiniciarAtual.elemento);
+                }
+                
+                telaReiniciarAtual = new TelaOverlay("reiniciar", pontos);
+                areaDeJogo.appendChild(telaReiniciarAtual.elemento);
+                telaReiniciarAtual.onClick(reiniciarJogo);
+                telaReiniciarAtual.mostrar();
             }
             
         }, 20);
     };
+
+    const reiniciarJogo = () => {
+        pontos = 0;
+        progresso.atualizarPontos(0);
+        
+        passaro.resetar();
+        barreiras.resetar();
+        
+        iniciarJogo();
+    };
+
+    telaIniciar.onClick(iniciarJogo);
+
+    telaIniciar.mostrar();
 }
 
-new FlappyBird().start();
+new FlappyBird();
